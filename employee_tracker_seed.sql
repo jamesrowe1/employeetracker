@@ -13,7 +13,7 @@ CREATE TABLE departments (
 id INTEGER AUTO_INCREMENT NOT NULL,
 
 -- table columns --
-name VARCHAR(30),
+department VARCHAR(30),
 
 -- set the primary key --
 PRIMARY KEY (id)
@@ -50,10 +50,10 @@ manager_id INTEGER,
 PRIMARY KEY (id),
 -- set the foreign keys --
 FOREIGN KEY (role_id) REFERENCES roles(id),
-FOREIGN KEY (manager_id) REFERENCES roles(id)
+FOREIGN KEY (manager_id) REFERENCES employees(id)
 );
 
-INSERT INTO departments (name)
+INSERT INTO departments (department)
 VALUES ("Rowe Inc");
 
 INSERT INTO roles (title, salary, department_id)
