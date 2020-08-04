@@ -17,9 +17,16 @@ const connection = mysql.createConnection({
 
 connection.connect(function (err) {
   if (err) throw err;
-  console.log("connected as id " + connection.threadID);
+  console.log("connected as id " + connection.threadId);
   connection.query(
     "SELECT * FROM employees INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id",
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+    }
+  );
+  connection.query(
+    "SELECT * FROM employees INNER JOIN roles ON employees.role_id=roles.id",
     function (err, res) {
       if (err) throw err;
       console.table(res);
