@@ -81,6 +81,7 @@ async function addRole() {
       newRole.department = department.id;
     }
   });
+  //did this with object
   connection.query(
     //put the new role into the db
     "INSERT INTO ROLES SET ?",
