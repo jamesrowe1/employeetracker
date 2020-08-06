@@ -1,13 +1,10 @@
 const mysql = require("mysql");
 const fs = require("fs");
-const cTable = require("console.table");
 const { listenerCount } = require("process");
-const inquirer = require("inquirer");
-const sqlCalls = require("./orms.js");
 const sqlFunctions = require("./sql_functions.js");
-const questions = require("./questions.js");
 const password = fs.readFileSync("./password.config", "utf8");
 
+//set up the connection to the db
 const connection = mysql.createConnection({
   host: "localhost",
 
@@ -19,8 +16,7 @@ const connection = mysql.createConnection({
   database: "employee_tracker_db",
 });
 
-const listSqlCalls = "SELECT department FROM departments";
-
+//init function
 function init() {
   connection.connect(function (err) {
     if (err) throw err;
@@ -29,4 +25,5 @@ function init() {
   });
 }
 
+//call init
 init();

@@ -1,22 +1,34 @@
+//dependencies
 const sqlCalls = require("./orms.js");
 const inquirer = require("inquirer");
 const questions = require("./questions.js");
+
+//connection will be sent from origin file, so this is global
 let connection;
 
+//start the program
 async function firstQuestion(connectionInit) {
+  //set connection to the connection passed in
   connection = connectionInit;
+
+  //ask the big question about what to do
   inquirer.prompt(questions.bigQuestion).then((answer) => {
+    //each of the following cases do the appropriate thing
     switch (answer.whatToDo) {
       case "View all Employees":
+        //call the viewSqlCalls function with the appropriate command taken from orms.js
         viewSqlCalls(sqlCalls.viewAllEmployees);
         break;
       case "No more actions":
+        //when done, end the connection
         connection.end();
         break;
       case "View all Roles":
+        //call the viewSqlCalls function with the appropriate command taken from orms.js
         viewSqlCalls(sqlCalls.viewAllRoles);
         break;
       case "View all Departments":
+        //call the viewSqlCalls function with the appropriate command taken from orms.js
         viewSqlCalls(sqlCalls.viewAllDepartments);
         break;
       case "Add Department":
@@ -35,6 +47,7 @@ async function firstQuestion(connectionInit) {
         updateEmployeeManager();
         break;
       case "View Employees by Manager":
+        //call the viewSqlCalls function with the appropriate command taken from orms.js
         viewSqlCalls(sqlCalls.viewEmployeesByManager);
         break;
       case "Remove Department":
@@ -54,13 +67,20 @@ async function firstQuestion(connectionInit) {
     }
   });
 }
+
+//view the budget for a department
 const viewBudget = async function () {
+  //get the department list
   let departmentList = await getDepartmentListandId;
+
+  //set the budget question department list
   questions.budgetQuestion[0].choices = departmentList;
+
+  //ask the questions
   let budgetDepartment = await inquirer.prompt(questions.budgetQuestion);
 
+  //run the query and output the result
   connection.query(
-    //delete the department
     "SELECT SUM(salary) as budget FROM employees INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id=departments.id WHERE departments.id=?",
     [budgetDepartment.viewBudget.split(" ID: ")[1]],
     (err, results, fields) => {
@@ -72,14 +92,21 @@ const viewBudget = async function () {
   );
 };
 
+//delete employee
 const deleteEmployee = async function () {
+  //get employee list
   let employeeList = await getEmployeeListandId;
+
+  //set the employee question choices list to the employee list
   questions.removeEmployeeQuestion[0].choices = employeeList;
+
+  //ask which employee should be removed
   let employeeToBeRemoved = await inquirer.prompt(
     questions.removeEmployeeQuestion
   );
+
   connection.query(
-    //delete the department
+    //remove the employee
     "DELETE FROM employees WHERE id= ?",
     [employeeToBeRemoved.employeeName.split(" ID: ")[1]],
     (err, results, fields) => {
@@ -91,12 +118,18 @@ const deleteEmployee = async function () {
   );
 };
 
+//delete a role
 const deleteRole = async function () {
+  //get list of roles
   let roleList = await getRoleListandId;
+
+  //set the list of choices in the question to be the role list
   questions.removeRoleQuestion[0].choices = roleList;
+
+  //ask the question
   let roleToBeRemoved = await inquirer.prompt(questions.removeRoleQuestion);
   connection.query(
-    //delete the department
+    //remove the role
     "DELETE FROM roles WHERE id= ?",
     [roleToBeRemoved.role.split(" ID: ")[1]],
     (err, results, fields) => {
@@ -108,12 +141,19 @@ const deleteRole = async function () {
   );
 };
 
+//delete a department
 const deleteDepartment = async function () {
+  //set the list of departments
   let departmentList = await getDepartmentListandId;
+
+  //set the choices in the question to the department list
   questions.removeDepartmentQuestion[0].choices = departmentList;
+
+  //ask the question
   let departmentToBeRemoved = await inquirer.prompt(
     questions.removeDepartmentQuestion
   );
+
   connection.query(
     //delete the department
     "DELETE FROM departments WHERE id= ?",
@@ -127,19 +167,23 @@ const deleteDepartment = async function () {
   );
 };
 
+//create an array of employees from sql calls
 const getEmployeeListandId = async function () {
   let currentEmployeeListObj = await getSqlCalls(sqlCalls.viewAllEmployees);
   let currentEmployeeList = currentEmployeeListObj.map(
+    //" ID: " is added to allow ease of keep the specific id available and to avoid confusion if 2 employees share the same name
     (obj) => obj.first_name + " " + obj.last_name + " ID: " + obj.id
   );
   return currentEmployeeList;
 };
 
+//create an array of roles from sql calls
 const getRoleListandId = async function () {
   //get an array of the role objects
   let roleListObj = await getSqlCalls(sqlCalls.viewAllRoles);
 
   //turn it into an array
+  //" ID: " is added to allow ease of keep the specific id available and to avoid confusion if 2 roles share the same name
   let roleList = roleListObj.map((obj) => obj.title + " ID: " + obj.id);
 
   return roleList;
@@ -150,6 +194,7 @@ const getDepartmentListandId = async function () {
   let departmentListObj = await getSqlCalls(sqlCalls.viewAllDepartments);
 
   //turn the array of objects into just an array
+  //" ID: " is added to allow ease of keep the specific id available and to avoid confusion if 2 departments share the same name
   let departmentList = departmentListObj.map(
     (obj) => obj.department + " ID: " + obj.id
   );
@@ -160,15 +205,21 @@ const getDepartmentListandId = async function () {
 const updateEmployeeManager = async function () {
   //get the employee list
   let currentEmployeeList = await getEmployeeListandId();
+  //get the manager list (same as employee list, but will have option null)
   let managerList = await getEmployeeListandId();
   managerList.push("null");
+
+  //set the correct lists in the question
   questions.changeEmployeeManagerQuestions[0].choices = currentEmployeeList;
   questions.changeEmployeeManagerQuestions[1].choices = managerList;
+
+  //ask the question
   let changeManager = await inquirer.prompt(
     questions.changeEmployeeManagerQuestions
   );
+
   connection.query(
-    //update the employees role
+    //update the employees manager
     "UPDATE employees SET manager_id = ? WHERE id= ?",
     [
       changeManager.managerName.split(" ID: ")[1],
@@ -193,6 +244,7 @@ const updateEmployeeRole = async function () {
   questions.updateRoleQuestions[0].choices = currentEmployeeList;
   questions.updateRoleQuestions[1].choices = currentRoleList;
 
+  //ask the question
   let updateEmployee = await inquirer.prompt(questions.updateRoleQuestions);
 
   connection.query(
@@ -210,6 +262,7 @@ const updateEmployeeRole = async function () {
     }
   );
 };
+
 //add employee
 const addEmployee = async function () {
   //get a list of the roles and employees
@@ -241,6 +294,7 @@ const addEmployee = async function () {
   );
 };
 
+//add department
 const addDepartment = async function () {
   //ask the department question (name of department)
   let departmentName = await inquirer.prompt(questions.addDepartmentQuestion);
@@ -288,7 +342,7 @@ const addRole = async function () {
   );
 };
 
-//sql function that returns the database object
+// function that returns the database object from the sqlFunction given
 async function getSqlCalls(sqlFunction) {
   let results;
   return new Promise((data) => {
@@ -304,7 +358,7 @@ async function getSqlCalls(sqlFunction) {
   });
 }
 
-//sql function that shows the output of the call on the screen
+// function that shows the output of the sql function on the screen
 function viewSqlCalls(sqlFunction) {
   connection.query(sqlFunction, function (err, res) {
     if (err) throw err;
