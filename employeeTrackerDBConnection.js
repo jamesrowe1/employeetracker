@@ -5,6 +5,7 @@ const { listenerCount } = require("process");
 const inquirer = require("inquirer");
 const sqlCalls = require("./orms.js");
 const sqlFunctions = require("./sql_functions.js");
+const questions = require("./questions.js");
 const password = fs.readFileSync("./password.config", "utf8");
 
 const connection = mysql.createConnection({
@@ -24,78 +25,78 @@ function init() {
   connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
-    firstQuestion();
+    sqlFunctions.firstQuestion(connection);
   });
 }
 
-async function firstQuestion() {
-  inquirer.prompt(bigQuestion).then((answer) => {
-    switch (answer.whatToDo) {
-      case "View all Employees":
-        viewSqlCalls(sqlCalls.viewAllEmployees);
-        break;
-      case "No more actions":
-        connection.end();
-        break;
-      case "View all Roles":
-        viewSqlCalls(sqlCalls.viewAllRoles);
-        break;
-      case "View all Departments":
-        viewSqlCalls(sqlCalls.viewAllDepartments);
-        break;
-      case "Add Department":
-        sqlFunctions.addDepartment();
-        break;
-      case "Add Role":
-        addRole();
-        break;
-      case "Add Employee":
-        addEmployee();
-        break;
-      default:
-        break;
-    }
-  });
-}
+// async function firstQuestion() {
+//   inquirer.prompt(questions.bigQuestion).then((answer) => {
+//     switch (answer.whatToDo) {
+//       case "View all Employees":
+//         viewSqlCalls(sqlCalls.viewAllEmployees);
+//         break;
+//       case "No more actions":
+//         connection.end();
+//         break;
+//       case "View all Roles":
+//         viewSqlCalls(sqlCalls.viewAllRoles);
+//         break;
+//       case "View all Departments":
+//         viewSqlCalls(sqlCalls.viewAllDepartments);
+//         break;
+//       case "Add Department":
+//         sqlFunctions.addDepartment();
+//         break;
+//       case "Add Role":
+//         addRole();
+//         break;
+//       case "Add Employee":
+//         addEmployee();
+//         break;
+//       default:
+//         break;
+//     }
+//   });
+// }
 
-async function addEmployee() {
-  //get an array of the role objects
-  let roleListObj = await getSqlCalls(sqlCalls.viewAllRoles);
-  console.log(roleListObj);
+// async function addEmployee() {
+//   //get an array of the role objects
+//   let roleListObj = await getSqlCalls(sqlCalls.viewAllRoles);
+//   console.log(roleListObj);
 
-  //turn it into an array
-  let roleList = await roleListObj.map((obj) => obj.title + " ID: " + obj.id);
-  console.log(roleList);
+//   //turn it into an array
+//   let roleList = await roleListObj.map((obj) => obj.title + " ID: " + obj.id);
+//   console.log(roleList);
 
-  let currentEmployeeListObj = await getSqlCalls(sqlCalls.viewAllEmployees);
-  let currentEmployeeList = await currentEmployeeListObj.map(
-    (obj) => obj.first_name + " " + obj.last_name + " ID: " + obj.id
-  );
-  console.log(currentEmployeeList);
-  //addEmployeeQuestions asks first name, last name, role, manager
-  addEmployeeQuestions[2].choices = roleList;
-  addEmployeeQuestions[3].choices = currentEmployeeList;
+//   let currentEmployeeListObj = await getSqlCalls(sqlCalls.viewAllEmployees);
+//   let currentEmployeeList = await currentEmployeeListObj.map(
+//     (obj) => obj.first_name + " " + obj.last_name + " ID: " + obj.id
+//   );
+//   console.log(currentEmployeeList);
+//   //addEmployeeQuestions asks first name, last name, role, manager
+//   questions.addEmployeeQuestions[2].choices = roleList;
+//   questions.addEmployeeQuestions[3].choices = currentEmployeeList;
 
-  let newEmployee = await inquirer.prompt(addEmployeeQuestions);
-  console.log(newEmployee);
+//   let newEmployee = await inquirer.prompt(questions.addEmployeeQuestions);
+//   console.log(newEmployee);
 
-  connection.query(
-    //put the new employee into the db
-    "INSERT INTO employees SET ?",
-    {
-      first_name: newEmployee.firstname,
-      last_name: newEmployee.lastname,
-      role_id: newEmployee.role.split("ID: ")[1],
-      manager_id: newEmployee.manager.split("ID: ")[1],
-    },
-    (err, results, fields) => {
-      if (err) throw err;
-      console.log("added");
-      //ask what to do next
-      firstQuestion();
-    }
-  );
-}
+//   connection.query(
+//     //put the new employee into the db
+//     "INSERT INTO employees SET ?",
+//     {
+//       first_name: newEmployee.firstname,
+//       last_name: newEmployee.lastname,
+//       role_id: newEmployee.role.split("ID: ")[1],
+//       manager_id: newEmployee.manager.split("ID: ")[1],
+//     },
+//     (err, results, fields) => {
+//       if (err) throw err;
+//       console.log("added");
+//       //ask what to do next
+//       firstQuestion();
+//     }
+//   );
+// }
 
 // async function addRole() {
 //   //get array of objects of departments and their keys
@@ -153,213 +154,213 @@ async function addEmployee() {
 //   console.log(departmentName);
 // }
 
-async function getSqlCalls(sqlFunction) {
-  let results;
-  return new Promise((data) => {
-    connection.query(sqlFunction, (err, res) => {
-      if (err) throw err;
-      try {
-        //console.log(res);
-        data(res);
-      } catch (err) {
-        throw err;
-      }
-    });
-  });
-}
+// async function getSqlCalls(sqlFunction) {
+//   let results;
+//   return new Promise((data) => {
+//     connection.query(sqlFunction, (err, res) => {
+//       if (err) throw err;
+//       try {
+//         //console.log(res);
+//         data(res);
+//       } catch (err) {
+//         throw err;
+//       }
+//     });
+//   });
+// }
 
-function viewSqlCalls(sqlFunction) {
-  connection.query(
-    sqlFunction,
-    //listSqlCalls,
-    // roles.title, roles.salary, departments.name,
-    // INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id
-    function (err, res) {
-      if (err) throw err;
-      console.table(res);
-      firstQuestion();
-    }
-  );
-}
+// function viewSqlCalls(sqlFunction) {
+//   connection.query(
+//     sqlFunction,
+//     //listSqlCalls,
+//     // roles.title, roles.salary, departments.name,
+//     // INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id
+//     function (err, res) {
+//       if (err) throw err;
+//       console.table(res);
+//       firstQuestion();
+//     }
+//   );
+// }
 
-const bigQuestion = [
-  {
-    name: "whatToDo",
-    message: "What would you like to do?",
-    type: "list",
-    choices: [
-      //sql command
-      "View all Employees",
-      //sql command
-      "View all Roles",
-      //sql command
-      "View all Departments",
-      //ask which manager
-      "View Employees by Manager",
-      //ask which department
-      "View Utilized Budget of Department",
-      //ask questions then add to sql
-      "Add Employee",
-      //ask questions then add to sql
-      "Add Role",
-      //ask questions then add to sql
-      "Add Department",
-      //update role
-      "Update Role",
-      //remove employee
-      "Remove Employee",
-      //remove role question
-      "Remove Role",
-      //remove department question
-      "Remove Department",
-      //update employee manager
-      "Change Employee Manager",
-      //no more changes
-      "No more actions",
-    ],
-  },
-];
-const changeEmployeeManagerQuestions = [
-  {
-    name: "employeeName",
-    message: "Which employee is changing manager?",
-    type: "list",
-    choices: [
-      //list of employees
-    ],
-  },
-  {
-    name: "managerName",
-    message: "Who is the employees manager?",
-    type: "list",
-    choices: [
-      //list of managers
-    ],
-  },
-];
-const removeDepartmentQuestion = [
-  {
-    name: "departmentName",
-    message: "Which department would you like to remove?",
-    type: "list",
-    choices: [
-      //list of all department
-    ],
-  },
-];
-const removeRoleQuestion = [
-  {
-    name: "role",
-    message: "Which role would you like to remove?",
-    type: "list",
-    choices: [
-      //list of all roles
-    ],
-  },
-];
-const removeEmployeeQuestion = [
-  {
-    name: "employeeName",
-    message: "Which Employee would you like to remove?",
-    type: "list",
-    choices: [
-      //list of all employees
-    ],
-  },
-];
-const updateRoleQuestions = [
-  {
-    name: "salary",
-    //maybe try to add old salary here as reference
-    message: "What is the salary?",
-    type: "number",
-  },
-  {
-    name: "department",
-    message: "What is the department?",
-    type: "list",
-    choices: [
-      //array of departments (and need to assign to department_id as a number)
-    ],
-  },
-];
-//add department questions
-const addDepartmentQuestion = [
-  {
-    name: "departmentName",
-    Message: "Please enter the department name:",
-  },
-];
-//add role questions
-const addRoleQuestions = [
-  {
-    name: "roleName",
-    message: "What is the title of the role?",
-  },
-  {
-    name: "salary",
-    message: "What is the salary?",
-    type: "number",
-  },
-  {
-    name: "department",
-    message: "What is the department?",
-    type: "list",
-    choices: [
-      //array of departments (and need to assign to department_id as a number)
-    ],
-  },
-];
-//view employees of manager
-const managerQuestion = [
-  {
-    name: "managerChoice",
-    message: "Which manager would you like to view the employees of?",
-    type: "list",
-    choices: [
-      //array of managers from sql command
-    ],
-  },
-];
+// const bigQuestion = [
+//   {
+//     name: "whatToDo",
+//     message: "What would you like to do?",
+//     type: "list",
+//     choices: [
+//       //sql command
+//       "View all Employees",
+//       //sql command
+//       "View all Roles",
+//       //sql command
+//       "View all Departments",
+//       //ask which manager
+//       "View Employees by Manager",
+//       //ask which department
+//       "View Utilized Budget of Department",
+//       //ask questions then add to sql
+//       "Add Employee",
+//       //ask questions then add to sql
+//       "Add Role",
+//       //ask questions then add to sql
+//       "Add Department",
+//       //update role
+//       "Update Role",
+//       //remove employee
+//       "Remove Employee",
+//       //remove role question
+//       "Remove Role",
+//       //remove department question
+//       "Remove Department",
+//       //update employee manager
+//       "Change Employee Manager",
+//       //no more changes
+//       "No more actions",
+//     ],
+//   },
+// // ];
+// const changeEmployeeManagerQuestions = [
+//   {
+//     name: "employeeName",
+//     message: "Which employee is changing manager?",
+//     type: "list",
+//     choices: [
+//       //list of employees
+//     ],
+//   },
+//   {
+//     name: "managerName",
+//     message: "Who is the employees manager?",
+//     type: "list",
+//     choices: [
+//       //list of managers
+//     ],
+//   },
+// ];
+// const removeDepartmentQuestion = [
+//   {
+//     name: "departmentName",
+//     message: "Which department would you like to remove?",
+//     type: "list",
+//     choices: [
+//       //list of all department
+//     ],
+//   },
+// ];
+// const removeRoleQuestion = [
+//   {
+//     name: "role",
+//     message: "Which role would you like to remove?",
+//     type: "list",
+//     choices: [
+//       //list of all roles
+//     ],
+//   },
+// ];
+// const removeEmployeeQuestion = [
+//   {
+//     name: "employeeName",
+//     message: "Which Employee would you like to remove?",
+//     type: "list",
+//     choices: [
+//       //list of all employees
+//     ],
+//   },
+// ];
+// const updateRoleQuestions = [
+//   {
+//     name: "salary",
+//     //maybe try to add old salary here as reference
+//     message: "What is the salary?",
+//     type: "number",
+//   },
+//   {
+//     name: "department",
+//     message: "What is the department?",
+//     type: "list",
+//     choices: [
+//       //array of departments (and need to assign to department_id as a number)
+//     ],
+//   },
+// ];
+// //add department questions
+// const addDepartmentQuestion = [
+//   {
+//     name: "departmentName",
+//     Message: "Please enter the department name:",
+//   },
+// ];
+// //add role questions
+// const addRoleQuestions = [
+//   {
+//     name: "roleName",
+//     message: "What is the title of the role?",
+//   },
+//   {
+//     name: "salary",
+//     message: "What is the salary?",
+//     type: "number",
+//   },
+//   {
+//     name: "department",
+//     message: "What is the department?",
+//     type: "list",
+//     choices: [
+//       //array of departments (and need to assign to department_id as a number)
+//     ],
+//   },
+// ];
+// //view employees of manager
+// const managerQuestion = [
+//   {
+//     name: "managerChoice",
+//     message: "Which manager would you like to view the employees of?",
+//     type: "list",
+//     choices: [
+//       //array of managers from sql command
+//     ],
+//   },
+// ];
 
-//question about budget
-const budgetQuestion = [
-  {
-    name: "viewBudget",
-    message: "Which department would you like to see the budget of?",
-    type: "list",
-    choices: [
-      //array of departments sql command
-    ],
-  },
-];
+// //question about budget
+// const budgetQuestion = [
+//   {
+//     name: "viewBudget",
+//     message: "Which department would you like to see the budget of?",
+//     type: "list",
+//     choices: [
+//       //array of departments sql command
+//     ],
+//   },
+// ];
 
-//adding employee
-const addEmployeeQuestions = [
-  {
-    name: "firstname",
-    message: "What is the employee's first name?",
-  },
-  {
-    name: "lastname",
-    message: "What is the employee's last name?",
-  },
-  {
-    name: "role",
-    message: "What is the employee's role?",
-    type: "list",
-    choices: [
-      //list from sql command of roles
-    ],
-  },
-  {
-    name: "manager",
-    message: "Who is the employees manager?",
-    type: "list",
-    choices: [
-      //list of employees or None
-    ],
-  },
-];
+// //adding employee
+// const addEmployeeQuestions = [
+//   {
+//     name: "firstname",
+//     message: "What is the employee's first name?",
+//   },
+//   {
+//     name: "lastname",
+//     message: "What is the employee's last name?",
+//   },
+//   {
+//     name: "role",
+//     message: "What is the employee's role?",
+//     type: "list",
+//     choices: [
+//       //list from sql command of roles
+//     ],
+//   },
+//   {
+//     name: "manager",
+//     message: "Who is the employees manager?",
+//     type: "list",
+//     choices: [
+//       //list of employees or None
+//     ],
+//   },
+// ];
 
 init();
