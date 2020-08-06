@@ -1,10 +1,13 @@
+//dependencies
 const mysql = require("mysql");
 const fs = require("fs");
-const { listenerCount } = require("process");
+const cTable = require("console.table");
 const sqlFunctions = require("./sql_functions.js");
+
+//read in the password from config file
 const password = fs.readFileSync("./password.config", "utf8");
 
-//set up the connection to the db
+//create the connection to the db
 const connection = mysql.createConnection({
   host: "localhost",
 
@@ -16,7 +19,7 @@ const connection = mysql.createConnection({
   database: "employee_tracker_db",
 });
 
-//init function
+//start the program
 function init() {
   connection.connect(function (err) {
     if (err) throw err;
@@ -25,5 +28,5 @@ function init() {
   });
 }
 
-//call init
+//init
 init();
