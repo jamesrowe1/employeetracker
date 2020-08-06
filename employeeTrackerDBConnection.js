@@ -65,6 +65,15 @@ async function firstQuestion() {
   });
 }
 
+async function addEmployee() {
+  //get an array of the role objects
+  let roleListObj = await getSqlCalls(sqlCalls.viewAllRoles);
+
+  //turn it into an array
+  let roleList = roleListObj.map((obj) => obj.role);
+  console.log(roleList);
+}
+
 async function addRole() {
   //get array of objects of departments and their keys
   let departmentListObj = await getSqlCalls(sqlCalls.viewAllDepartments);
