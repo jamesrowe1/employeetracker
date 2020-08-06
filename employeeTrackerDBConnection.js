@@ -56,6 +56,9 @@ async function firstQuestion() {
       case "Add Role":
         addRole();
         break;
+      case "Add Employee":
+        addEmployee();
+        break;
       default:
         break;
     }
