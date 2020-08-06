@@ -68,10 +68,19 @@ async function firstQuestion() {
 async function addEmployee() {
   //get an array of the role objects
   let roleListObj = await getSqlCalls(sqlCalls.viewAllRoles);
-  console.log(roleListObj);
+  //console.log(roleListObj);
+
   //turn it into an array
   let roleList = await roleListObj.map((obj) => obj.title);
-  console.log(roleList);
+  //console.log(roleList);
+
+  let employeeListObj = await getSqlCalls(sqlCalls.viewAllEmployees);
+  console.log(employeeListObj);
+  let employeeList = await employeeListObj.map(
+    (obj) => obj.first_name + " " + obj.last_name
+  );
+  console.log(employeeList);
+  //addEmployeeQuestions asks first name, last name, role, manager
 }
 
 async function addRole() {
