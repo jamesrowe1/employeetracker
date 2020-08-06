@@ -2,9 +2,6 @@ const sqlCalls = require("./orms.js");
 const inquirer = require("inquirer");
 const questions = require("./questions.js");
 let connection;
-class sqlFunctions {
-  constructor() {}
-}
 
 async function firstQuestion(connectionInit) {
   connection = connectionInit;
@@ -31,32 +28,137 @@ async function firstQuestion(connectionInit) {
       case "Add Employee":
         addEmployee();
         break;
+      case "Update Employee Role":
+        updateEmployeeRole();
+        break;
+      case "Change Employee Manager":
+        updateEmployeeManager();
+        break;
+      case "View Employees by Manager":
+        viewSqlCalls(sqlCalls.viewEmployeesByManager);
+        break;
+      case "Remove Department":
+        deleteDepartment();
+        break;
       default:
         break;
     }
   });
 }
+const deleteDepartment = async function () {
+  let departmentList = await getDepartmentListandId;
+  questions.removeDepartmentQuestion[0].choices = departmentList;
+  let departmentToBeRemoved = await inquirer.prompt(
+    questions.removeDepartmentQuestion
+  );
+  connection.query(
+    //delete the department
+    "DELETE FROM departments WHERE id= ?",
+    [departmentToBeRemoved.departmentName.split(" ID: ")[1]],
+    (err, results, fields) => {
+      if (err) throw err;
+      console.log("added");
+      //ask what to do next
+      firstQuestion(connection);
+    }
+  );
+};
 
-async function addEmployee() {
-  //get an array of the role objects
-  let roleListObj = await getSqlCalls(sqlCalls.viewAllRoles);
-  console.log(roleListObj);
-
-  //turn it into an array
-  let roleList = await roleListObj.map((obj) => obj.title + " ID: " + obj.id);
-  console.log(roleList);
-
+const getEmployeeListandId = async function () {
   let currentEmployeeListObj = await getSqlCalls(sqlCalls.viewAllEmployees);
-  let currentEmployeeList = await currentEmployeeListObj.map(
+  let currentEmployeeList = currentEmployeeListObj.map(
     (obj) => obj.first_name + " " + obj.last_name + " ID: " + obj.id
   );
-  console.log(currentEmployeeList);
+  return currentEmployeeList;
+};
+
+const getRoleListandId = async function () {
+  //get an array of the role objects
+  let roleListObj = await getSqlCalls(sqlCalls.viewAllRoles);
+
+  //turn it into an array
+  let roleList = roleListObj.map((obj) => obj.title + " ID: " + obj.id);
+
+  return roleList;
+};
+
+const getDepartmentListandId = async function () {
+  //get array of objects of departments and their keys
+  let departmentListObj = await getSqlCalls(sqlCalls.viewAllDepartments);
+
+  //turn the array of objects into just an array
+  let departmentList = departmentListObj.map(
+    (obj) => obj.department + " ID: " + obj.id
+  );
+  return departmentList;
+};
+
+//update an employees manager
+const updateEmployeeManager = async function () {
+  //get the employee list
+  let currentEmployeeList = await getEmployeeListandId();
+
+  questions.changeEmployeeManagerQuestions[0].choices = currentEmployeeList;
+  questions.changeEmployeeManagerQuestions[1].choices = currentEmployeeList;
+
+  let changeManager = await inquirer.prompt(
+    questions.changeEmployeeManagerQuestions
+  );
+  connection.query(
+    //update the employees role
+    "UPDATE employees SET manager_id = ? WHERE id= ?",
+    [
+      changeManager.managerName.split(" ID: ")[1],
+      changeManager.employeeName.split(" ID: ")[1],
+    ],
+    (err, results, fields) => {
+      if (err) throw err;
+      console.log("added");
+      //ask what to do next
+      firstQuestion(connection);
+    }
+  );
+};
+
+//update employee's role
+const updateEmployeeRole = async function () {
+  //get the employee and role list
+  let currentEmployeeList = await getEmployeeListandId();
+  let currentRoleList = await getRoleListandId();
+
+  //put the correct lists in the question
+  questions.updateRoleQuestions[0].choices = currentEmployeeList;
+  questions.updateRoleQuestions[1].choices = currentRoleList;
+
+  let updateEmployee = await inquirer.prompt(questions.updateRoleQuestions);
+
+  connection.query(
+    //update the employees role
+    "UPDATE employees SET role_id = ? WHERE id= ?",
+    [
+      updateEmployee.role.split(" ID: ")[1],
+      updateEmployee.employee.split(" ID: ")[1],
+    ],
+    (err, results, fields) => {
+      if (err) throw err;
+      console.log("added");
+      //ask what to do next
+      firstQuestion(connection);
+    }
+  );
+};
+//add employee
+const addEmployee = async function () {
+  //get a list of the roles and employees
+  let roleList = await getRoleListandId();
+  let currentEmployeeList = await getEmployeeListandId();
+
   //addEmployeeQuestions asks first name, last name, role, manager
   questions.addEmployeeQuestions[2].choices = roleList;
   questions.addEmployeeQuestions[3].choices = currentEmployeeList;
 
+  //ask the new employee questions
   let newEmployee = await inquirer.prompt(questions.addEmployeeQuestions);
-  console.log(newEmployee);
 
   connection.query(
     //put the new employee into the db
@@ -74,11 +176,14 @@ async function addEmployee() {
       firstQuestion(connection);
     }
   );
-}
+};
 
 const addDepartment = async function () {
+  //ask the department question (name of department)
   let departmentName = await inquirer.prompt(questions.addDepartmentQuestion);
   departmentName = departmentName.departmentName;
+
+  //put the department into the db
   connection.query(
     "INSERT INTO departments (department) VALUES(?)",
     departmentName,
@@ -89,17 +194,12 @@ const addDepartment = async function () {
       firstQuestion(connection);
     }
   );
-  console.log(departmentName);
 };
 
+//add a new role
 const addRole = async function () {
-  //get array of objects of departments and their keys
-  let departmentListObj = await getSqlCalls(sqlCalls.viewAllDepartments);
-
   //turn the array of objects into just an array
-  let departmentList = departmentListObj.map(
-    (obj) => obj.department + " ID: " + obj.id
-  );
+  let departmentList = await getDepartmentListandId();
 
   //set the role question about departments to the department list
   questions.addRoleQuestions[2].choices = departmentList;
@@ -107,13 +207,7 @@ const addRole = async function () {
   //ask the questions
   let newRole = await inquirer.prompt(questions.addRoleQuestions);
 
-  //map the department to the correct id and assign the id in the newRole object
-  //   departmentListObj.forEach((department) => {
-  //     if (department.department === newRole.department) {
-  //       newRole.department = department.id;
-  //     }
-  //   });
-  //did this with object
+  //put the new role into the role table
   connection.query(
     //put the new role into the db
     "INSERT INTO ROLES SET ?",
@@ -131,6 +225,7 @@ const addRole = async function () {
   );
 };
 
+//sql function that returns the database object
 async function getSqlCalls(sqlFunction) {
   let results;
   return new Promise((data) => {
@@ -146,24 +241,16 @@ async function getSqlCalls(sqlFunction) {
   });
 }
 
+//sql function that shows the output of the call on the screen
 function viewSqlCalls(sqlFunction) {
-  connection.query(
-    sqlFunction,
-    //listSqlCalls,
-    // roles.title, roles.salary, departments.name,
-    // INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id
-    function (err, res) {
-      if (err) throw err;
-      console.table(res);
-      firstQuestion(connection);
-    }
-  );
+  connection.query(sqlFunction, function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    firstQuestion(connection);
+  });
 }
+
+//send firstquestion out
 module.exports = {
-  addDepartment: addDepartment,
-  addRole: addRole,
-  viewSqlCalls: viewSqlCalls,
-  getSqlCalls: getSqlCalls,
-  addEmployee: addEmployee,
   firstQuestion: firstQuestion,
 };

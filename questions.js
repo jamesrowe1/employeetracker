@@ -21,7 +21,7 @@ const bigQuestion = [
       //ask questions then add to sql
       "Add Department",
       //update role
-      "Update Role",
+      "Update Employee Role",
       //remove employee
       "Remove Employee",
       //remove role question
@@ -40,7 +40,7 @@ const changeEmployeeManagerQuestions = [
   {
     name: "employeeName",
     message: "Which employee is changing manager?",
-    type: "rawlist",
+    type: "list",
     choices: [
       //list of employees
     ],
@@ -86,17 +86,20 @@ const removeEmployeeQuestion = [
 ];
 const updateRoleQuestions = [
   {
-    name: "salary",
+    name: "employee",
     //maybe try to add old salary here as reference
-    message: "What is the salary?",
-    type: "number",
-  },
-  {
-    name: "department",
-    message: "What is the department?",
+    message: "Which employee would you like to update?",
     type: "list",
     choices: [
-      //array of departments (and need to assign to department_id as a number)
+      //list of employees
+    ],
+  },
+  {
+    name: "role",
+    message: "What role should they be assigned?",
+    type: "list",
+    choices: [
+      //list of roles
     ],
   },
 ];
