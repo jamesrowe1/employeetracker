@@ -40,11 +40,73 @@ async function firstQuestion(connectionInit) {
       case "Remove Department":
         deleteDepartment();
         break;
+      case "Remove Role":
+        deleteRole();
+        break;
+      case "Remove Employee":
+        deleteEmployee();
+        break;
+      case "View Utilized Budget of Department":
+        viewBudget();
+        break;
       default:
         break;
     }
   });
 }
+const viewBudget = async function () {
+  let departmentList = await getDepartmentListandId;
+  questions.budgetQuestion[0].choices = departmentList;
+  let budgetDepartment = await inquirer.prompt(questions.budgetQuestion);
+
+  connection.query(
+    //delete the department
+    "SELECT SUM(salary) as budget FROM employees INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id=departments.id WHERE departments.id=?",
+    [budgetDepartment.viewBudget.split(" ID: ")[1]],
+    (err, results, fields) => {
+      if (err) throw err;
+      console.log("$" + results[0].budget);
+      //ask what to do next
+      firstQuestion(connection);
+    }
+  );
+};
+const deleteEmployee = async function () {
+  let employeeList = await getEmployeeListandId;
+  questions.removeEmployeeQuestion[0].choices = employeeList;
+  let employeeToBeRemoved = await inquirer.prompt(
+    questions.removeEmployeeQuestion
+  );
+  connection.query(
+    //delete the department
+    "DELETE FROM employees WHERE id= ?",
+    [employeeToBeRemoved.employeeName.split(" ID: ")[1]],
+    (err, results, fields) => {
+      if (err) throw err;
+      console.log("added");
+      //ask what to do next
+      firstQuestion(connection);
+    }
+  );
+};
+
+const deleteRole = async function () {
+  let roleList = await getRoleListandId;
+  questions.removeRoleQuestion[0].choices = roleList;
+  let roleToBeRemoved = await inquirer.prompt(questions.removeRoleQuestion);
+  connection.query(
+    //delete the department
+    "DELETE FROM roles WHERE id= ?",
+    [roleToBeRemoved.role.split(" ID: ")[1]],
+    (err, results, fields) => {
+      if (err) throw err;
+      console.log("added");
+      //ask what to do next
+      firstQuestion(connection);
+    }
+  );
+};
+
 const deleteDepartment = async function () {
   let departmentList = await getDepartmentListandId;
   questions.removeDepartmentQuestion[0].choices = departmentList;
