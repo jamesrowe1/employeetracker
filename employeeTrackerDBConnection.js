@@ -2,6 +2,7 @@ const mysql = require("mysql");
 const fs = require("fs");
 const cTable = require("console.table");
 const { listenerCount } = require("process");
+const inquirer = require("inquirer");
 
 const password = fs.readFileSync("./password.config", "utf8");
 
@@ -16,33 +17,137 @@ const connection = mysql.createConnection({
   database: "employee_tracker_db",
 });
 
-connection.connect(function (err) {
-  if (err) throw err;
-  console.log("connected as id " + connection.threadId);
+//all the sqlCalls
+const sqlCalls = {
+  viewAllEmployees:
+    "SELECT e.id, e.first_name, e.last_name, roles.title, departments.department, roles.salary,  CONCAT(m.first_name, ' ', m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id INNER JOIN roles ON e.role_id=roles.id INNER JOIN departments ON roles.department_id=departments.id",
+  viewAllRoles: "SELECT * FROM roles",
+  viewAllDepartments: "SELECT * FROM departments",
+};
+
+const listSqlCalls = "SELECT department FROM departments";
+
+function init() {
+  connection.connect(function (err) {
+    if (err) throw err;
+    console.log("connected as id " + connection.threadId);
+    firstQuestion();
+  });
+}
+
+async function firstQuestion() {
+  inquirer.prompt(bigQuestion).then((answer) => {
+    switch (answer.whatToDo) {
+      case "View all Employees":
+        viewSqlCalls(sqlCalls.viewAllEmployees);
+        break;
+      case "No more actions":
+        connection.end();
+        break;
+      case "View all Roles":
+        viewSqlCalls(sqlCalls.viewAllRoles);
+        break;
+      case "View all Departments":
+        viewSqlCalls(sqlCalls.viewAllDepartments);
+        break;
+      case "Add Department":
+        addDepartment();
+        break;
+      case "Add Role":
+        addRole();
+        break;
+      default:
+        break;
+    }
+  });
+}
+
+async function addRole() {
+  //get array of objects of departments and their keys
+  let departmentListObj = await getSqlCalls(sqlCalls.viewAllDepartments);
+
+  //turn the array of objects into just an array
+  let departmentList = departmentListObj.map((obj) => obj.department);
+
+  //set the role question about departments to the department list
+  addRoleQuestions[2].choices = departmentList;
+
+  //ask the questions
+  let newRole = await inquirer.prompt(addRoleQuestions);
+
+  //map the department to the correct id and assign the id in the newRole object
+  departmentListObj.forEach((department) => {
+    if (department.department === newRole.department) {
+      newRole.department = department.id;
+    }
+  });
   connection.query(
-    "SELECT * FROM employees INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id",
-    function (err, res) {
+    //put the new role into the db
+    "INSERT INTO ROLES SET ?",
+    {
+      title: newRole.roleName,
+      salary: newRole.salary,
+      department_id: newRole.department,
+    },
+    (err, results, fields) => {
       if (err) throw err;
-      console.table(res);
+      console.log("added");
+      //ask what to do next
+      firstQuestion();
     }
   );
+}
+
+async function addDepartment() {
+  let departmentName = await inquirer.prompt(addDepartmentQuestion);
+  departmentName = departmentName.departmentName;
   connection.query(
-    "SELECT e.id, e.first_name, e.last_name, roles.title, departments.department, roles.salary,  CONCAT(m.first_name, ' ', m.last_name) AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id INNER JOIN roles ON e.role_id=roles.id INNER JOIN departments ON roles.department_id",
+    "INSERT INTO departments (department) VALUES(?)",
+    departmentName,
+    (err, results, fields) => {
+      if (err) {
+        console.log(err);
+      }
+      firstQuestion();
+    }
+  );
+  console.log(departmentName);
+}
+
+async function getSqlCalls(sqlFunction) {
+  let results;
+  return new Promise((data) => {
+    connection.query(sqlFunction, (err, res) => {
+      if (err) throw err;
+      try {
+        //console.log(res);
+        data(res);
+      } catch (err) {
+        throw err;
+      }
+    });
+  });
+}
+
+function viewSqlCalls(sqlFunction) {
+  connection.query(
+    sqlFunction,
+    //listSqlCalls,
     // roles.title, roles.salary, departments.name,
     // INNER JOIN roles ON employees.role_id=roles.id INNER JOIN departments ON roles.department_id
     function (err, res) {
       if (err) throw err;
       console.table(res);
-      connection.end();
+      firstQuestion();
     }
   );
-});
+}
 
 const bigQuestion = [
   {
-    name: "whattodo",
+    name: "whatToDo",
     message: "What would you like to do?",
-    type: list,
+    type: "list",
     choices: [
       //sql command
       "View all Employees",
@@ -70,6 +175,8 @@ const bigQuestion = [
       "Remove Department",
       //update employee manager
       "Change Employee Manager",
+      //no more changes
+      "No more actions",
     ],
   },
 ];
@@ -126,7 +233,7 @@ const updateRoleQuestions = [
     name: "salary",
     //maybe try to add old salary here as reference
     message: "What is the salary?",
-    type: number,
+    type: "number",
   },
   {
     name: "department",
@@ -153,7 +260,7 @@ const addRoleQuestions = [
   {
     name: "salary",
     message: "What is the salary?",
-    type: number,
+    type: "number",
   },
   {
     name: "department",
@@ -215,3 +322,5 @@ const addEmployeeQuestions = [
     ],
   },
 ];
+
+init();
