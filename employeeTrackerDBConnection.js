@@ -99,6 +99,7 @@ async function addRole() {
   );
 }
 
+//add a new department
 async function addDepartment() {
   let departmentName = await inquirer.prompt(addDepartmentQuestion);
   departmentName = departmentName.departmentName;
