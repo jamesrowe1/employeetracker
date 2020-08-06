@@ -71,6 +71,7 @@ const viewBudget = async function () {
     }
   );
 };
+
 const deleteEmployee = async function () {
   let employeeList = await getEmployeeListandId;
   questions.removeEmployeeQuestion[0].choices = employeeList;
@@ -159,10 +160,10 @@ const getDepartmentListandId = async function () {
 const updateEmployeeManager = async function () {
   //get the employee list
   let currentEmployeeList = await getEmployeeListandId();
-
+  let managerList = await getEmployeeListandId();
+  managerList.push("null");
   questions.changeEmployeeManagerQuestions[0].choices = currentEmployeeList;
-  questions.changeEmployeeManagerQuestions[1].choices = currentEmployeeList;
-
+  questions.changeEmployeeManagerQuestions[1].choices = managerList;
   let changeManager = await inquirer.prompt(
     questions.changeEmployeeManagerQuestions
   );
