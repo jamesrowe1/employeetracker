@@ -1,3 +1,6 @@
+//all the questions used are in this file
+
+//original question
 const bigQuestion = [
   {
     name: "whatToDo",
@@ -36,6 +39,7 @@ const bigQuestion = [
   },
 ];
 
+//changine Employee Manager
 const changeEmployeeManagerQuestions = [
   {
     name: "employeeName",
@@ -54,6 +58,8 @@ const changeEmployeeManagerQuestions = [
     ],
   },
 ];
+
+//remove department
 const removeDepartmentQuestion = [
   {
     name: "departmentName",
@@ -64,6 +70,8 @@ const removeDepartmentQuestion = [
     ],
   },
 ];
+
+//remove role
 const removeRoleQuestion = [
   {
     name: "role",
@@ -74,6 +82,8 @@ const removeRoleQuestion = [
     ],
   },
 ];
+
+//remove employee
 const removeEmployeeQuestion = [
   {
     name: "employeeName",
@@ -84,6 +94,8 @@ const removeEmployeeQuestion = [
     ],
   },
 ];
+
+//update an employees role
 const updateRoleQuestions = [
   {
     name: "employee",
@@ -103,6 +115,7 @@ const updateRoleQuestions = [
     ],
   },
 ];
+
 //add department questions
 const addDepartmentQuestion = [
   {
@@ -110,6 +123,7 @@ const addDepartmentQuestion = [
     Message: "Please enter the department name:",
   },
 ];
+
 //add role questions
 const addRoleQuestions = [
   {
@@ -130,6 +144,7 @@ const addRoleQuestions = [
     ],
   },
 ];
+
 //view employees of manager
 const managerQuestion = [
   {
@@ -181,6 +196,8 @@ const addEmployeeQuestions = [
     ],
   },
 ];
+
+//export all of the variables
 module.exports = {
   bigQuestion: bigQuestion,
   changeEmployeeManagerQuestions: changeEmployeeManagerQuestions,

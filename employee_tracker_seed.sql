@@ -32,7 +32,7 @@ department_id INTEGER,
 -- set the primary key --
 PRIMARY KEY (id),
 -- set the foreign keys --
-FOREIGN KEY (department_id) REFERENCES departments(id)
+FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE
 );
 
 -- create the people table --
@@ -49,16 +49,16 @@ manager_id INTEGER,
 -- set the primary key --
 PRIMARY KEY (id),
 -- set the foreign keys --
-FOREIGN KEY (role_id) REFERENCES roles(id),
-FOREIGN KEY (manager_id) REFERENCES employees(id)
+FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL 
 );
 
 INSERT INTO departments (department)
-VALUES ("Rowe Inc");
+VALUES ("Death Star"), ("Imperial Center"), ("Executor");
 
 INSERT INTO roles (title, salary, department_id)
-VALUES ("Manager", "100000", 1), ("Wage-slave", "50000", 1);
+VALUES ("Emperor", "100000", 2), ("Lord of the Sith", "75000", 3);
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES ("James", "Rowe", 1, null), ("John", "Rowe", 2, 1), ("Cate", "Rowe", 2, 1);
+VALUES ("Darth", "Vader", 2, 1), ("Sheev", "Palpatine", 1, null),
 
